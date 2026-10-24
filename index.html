@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>情绪减压舱 · 解忧方案生成器</title>
+<style>
+  :root{
+    --ink:#2c3a36; --ink2:#51635c; --dim:#8aa39a;
+    --card:#fbfdfb; --line:#dbe9e2;
+    --brand:#35b39a; --brand2:#7ed3bf; --mint:#3fbfb0; --sun:#f2b95c;
+    --radius:16px;
+    --font:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',system-ui,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    font-family:var(--font); color:var(--ink); min-height:100vh;
+    background:
+      radial-gradient(900px 500px at 12% -5%, rgba(53,179,154,.14), transparent 60%),
+      radial-gradient(800px 460px at 92% 8%, rgba(126,211,191,.14), transparent 60%),
+      radial-gradient(700px 500px at 60% 100%, rgba(242,185,92,.10), transparent 60%),
+      #f4faf6;
+  }
+  header{max-width:1180px;margin:0 auto;padding:26px 24px 10px;text-align:center}
+  .logo{font-size:40px}
+  header h1{font-size:26px;letter-spacing:2px;margin-top:6px}
+  header .sub{color:var(--ink2);font-size:13px;margin-top:8px;line-height:1.8}
+  .pill{
+    display:inline-block;margin-top:12px;font-size:11.5px;color:#3f7f72;
+    background:rgba(53,179,154,.1);border:1px solid rgba(53,179,154,.25);
+    padding:4px 12px;border-radius:99px;
+  }
+  main{max-width:1180px;margin:0 auto;padding:18px 24px 40px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
+  @media(max-width:920px){.grid{grid-template-columns:1fr}}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:0 10px 30px rgba(60,120,90,.06);overflow:hidden}
+  .phead{padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;
+    font-size:14px;background:linear-gradient(180deg,#fdfefd,#f0f8f4)}
+  .phead .em{font-size:16px}
+  .phead .note{margin-left:auto;font-size:11px;color:var(--dim)}
+  .pbody{padding:18px}
+
+  /* 每日一句 */
+  .daily{background:linear-gradient(135deg,rgba(53,179,154,.10),rgba(242,185,92,.12));
+    border:1px solid rgba(53,179,154,.25);border-radius:14px;padding:15px 17px;margin-bottom:16px}
+  .daily .dlbl{font-size:11px;color:var(--brand);letter-spacing:1px;margin-bottom:7px}
+  .daily .dquote{font-size:14.5px;line-height:1.9;color:#3c4a44;font-weight:500}
+  .daily .dnote{margin-top:8px;font-size:11.5px;color:var(--dim);text-align:right}
+
+  /* 分类模板 */
+  .cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .cat{
+    font-family:var(--font);font-size:12.5px;padding:7px 13px;border-radius:99px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--ink2);transition:all .18s;
+  }
+  .cat:hover{border-color:#8fd4c4;color:#2f8f7a}
+  .cat.on{background:linear-gradient(135deg,#35b39a,#5ccbb4);color:#fff;border-color:transparent;
+    box-shadow:0 4px 12px rgba(53,179,154,.3)}
+  .cat .ic{margin-right:4px}
+
+  textarea{
+    width:100%;min-height:170px;resize:vertical;font-family:var(--font);font-size:14px;line-height:1.9;
+    padding:14px 16px;border:1px solid var(--line);border-radius:12px;background:#fdfefd;color:var(--ink);
+    outline:none;transition:border-color .2s,box-shadow .2s;
+  }
+  textarea:focus{border-color:#7ed3bf;box-shadow:0 0 0 3px rgba(53,179,154,.12)}
+  textarea::placeholder{color:#b9cbc3}
+  .meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:11.5px;color:var(--dim)}
+  .btnrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  button{font-family:var(--font);cursor:pointer;border-radius:12px;padding:11px 20px;font-size:14px;
+    border:1px solid var(--line);background:#fff;color:var(--ink2);transition:all .18s}
+  button:hover{border-color:#8fd4c4;color:#2f8f7a}
+  button.primary{
+    background:linear-gradient(135deg,#35b39a,#4fc4ad);color:#fff;border-color:transparent;
+    font-weight:600;box-shadow:0 6px 18px rgba(53,179,154,.32)
+  }
+  button.primary:hover{filter:brightness(1.05);color:#fff}
+  button.primary:disabled{opacity:.55;cursor:not-allowed;box-shadow:none;filter:none}
+  button.sun{background:linear-gradient(135deg,#f2b95c,#f7cd85);color:#fff;border-color:transparent;font-weight:600;
+    box-shadow:0 6px 18px rgba(242,185,92,.35)}
+  button.sun:hover{color:#fff;filter:brightness(1.04)}
+  button.small{padding:7px 13px;font-size:12.5px}
+  button.mic{background:#fff;border:1px solid #8fd4c4;color:#2f8f7a}
+  button.mic.on{background:#e6535a;border-color:#e6535a;color:#fff;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(230,83,90,.4)}50%{box-shadow:0 0 0 8px rgba(230,83,90,0)}}
+
+  /* 输出 */
+  .out-empty{text-align:center;color:var(--dim);padding:52px 10px;line-height:2.1;font-size:13.5px}
+  .out-empty .big{font-size:44px;display:block;margin-bottom:10px;opacity:.5}
+  .block{border-radius:14px;padding:15px 17px;margin-bottom:14px;border:1px solid var(--line)}
+  .block h3{font-size:13.5px;margin-bottom:9px;display:flex;align-items:center;gap:7px}
+  .block .tagx{font-size:10.5px;padding:2px 8px;border-radius:99px;background:#eef5f1;color:var(--dim);font-weight:400}
+  .b-hug{background:linear-gradient(135deg,rgba(53,179,154,.09),rgba(242,185,92,.09));border-color:rgba(53,179,154,.2)}
+  .b-hug p{font-size:14.5px;line-height:2.05;color:#3c4a44}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.split{grid-template-columns:1fr}}
+  .col{border-radius:12px;padding:12px 14px;background:#f3f8f5;border:1px solid var(--line)}
+  .col.chg{background:rgba(63,191,176,.1);border-color:rgba(63,191,176,.3)}
+  .col.ctl{background:rgba(160,150,170,.10);border-color:rgba(160,150,170,.25)}
+  .col h4{font-size:12.5px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+  .col ul{list-style:none}
+  .col li{font-size:13px;line-height:1.85;padding-left:14px;position:relative;margin-bottom:5px;color:#48544f}
+  .col li::before{content:'';position:absolute;left:0;top:9px;width:5px;height:5px;border-radius:50%;background:#a9c0b7}
+  .col.chg li::before{background:var(--mint)}
+  .acts{background:linear-gradient(135deg,rgba(63,191,176,.08),rgba(53,179,154,.08));border-color:rgba(63,191,176,.25)}
+  .act{display:flex;gap:11px;margin-bottom:11px}
+  .act:last-child{margin-bottom:0}
+  .act .no{
+    flex-shrink:0;width:24px;height:24px;border-radius:50%;color:#fff;font-size:12px;
+    display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#3fbfb0,#35b39a);
+  }
+  .act .t{font-size:13.5px;font-weight:600;color:#35403c;margin-bottom:2px}
+  .act .d{font-size:12.5px;color:var(--ink2);line-height:1.8}
+  .act .time{font-size:10.5px;color:#fff;background:rgba(63,191,176,.9);border-radius:99px;padding:1px 8px;margin-left:6px}
+  .closing{text-align:center;font-size:13px;color:var(--ink2);padding:6px 0 2px;line-height:1.9}
+  .closing .heart{color:#e88f8f}
+
+  /* 卡片预览 */
+  .cardwrap{margin-top:6px;text-align:center}
+  #cardCanvas{max-width:100%;width:340px;border-radius:12px;box-shadow:0 14px 34px rgba(60,120,90,.18);height:auto}
+  .tip{font-size:11.5px;color:var(--dim);text-align:center;margin-top:8px;line-height:1.8}
+
+  /* 呼吸 */
+  .breath{text-align:center;padding:8px 0 2px}
+  .breath-ring{
+    width:104px;height:104px;margin:0 auto;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%, rgba(63,191,176,.35), rgba(53,179,154,.14));
+    border:2px solid rgba(53,179,154,.35);display:flex;align-items:center;justify-content:center;
+    transition:transform 1s linear;
+  }
+  .breath-ring .txt{font-size:12.5px;color:#3f7f72}
+  .breath .ph{font-size:12px;color:var(--dim);margin-top:10px}
+
+  /* 存档 */
+  .arch{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;
+    margin-bottom:8px;cursor:pointer;background:#fdfefd;transition:border-color .15s}
+  .arch:hover{border-color:#8fd4c4}
+  .arch .dotp{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+  .arch .txt{flex:1;font-size:12.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .arch .dt{font-size:11px;color:var(--dim);flex-shrink:0}
+  .arch .x{color:#c4d4ce;font-size:12px;padding:0 3px}
+  .arch .x:hover{color:#e08a8a}
+
+  /* 心情打卡 */
+  .mood-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+  .mood-btn{font-size:26px;padding:6px 10px;border:1px solid var(--line);border-radius:12px;background:#fff;cursor:pointer;transition:all .15s}
+  .mood-btn:hover{transform:translateY(-2px);border-color:#8fd4c4}
+  .mood-btn.on{background:rgba(53,179,154,.12);border-color:#35b39a}
+  .mood-note{font-size:12.5px;color:var(--ink2);text-align:center;margin-bottom:8px}
+  .mood-today{font-size:12px;color:var(--dim);text-align:center;margin-bottom:4px}
+
+  /* 晴雨表 */
+  .weather-legend{display:flex;gap:14px;justify-content:center;font-size:11.5px;color:var(--ink2);margin-bottom:12px;flex-wrap:wrap}
+  .weather-legend span{display:flex;align-items:center;gap:4px}
+  .weather-legend .sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .bar-lbl{width:56px;font-size:12px;color:var(--ink2);text-align:right;flex-shrink:0}
+  .bar-track{flex:1;height:18px;background:#eef5f1;border-radius:99px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:99px;transition:width .6s ease}
+  .bar-cnt{width:26px;font-size:12px;color:var(--dim);text-align:left;flex-shrink:0}
+  .trend{display:flex;align-items:flex-end;gap:6px;height:90px;padding:0 6px;margin-top:6px}
+  .trend .col-bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .trend .col-bar .tb{width:100%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,#5ccbb4,#35b39a);transition:height .5s ease}
+  .trend .col-bar .tl{font-size:9.5px;color:var(--dim);transform:rotate(-30deg);white-space:nowrap}
+
+  footer{text-align:center;color:var(--dim);font-size:11.5px;padding:10px 20px 36px;line-height:2}
+  .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(70px);
+    background:#35403c;color:#fff;padding:10px 22px;border-radius:99px;font-size:13px;
+    opacity:0;transition:all .3s;z-index:99;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .fade{animation:fade .5s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🌿</div>
+  <h1>情绪减压舱</h1>
+  <div class="sub">把烦心事放进减压舱，它会接住你、陪你理清，再给你一份马上能做的解忧方案<br>卸下一点重量，再往前一步</div>
+  <span class="pill">🔒 所有内容只在你的设备上运行，不上传任何服务器</span>
+</header>
+
+<main>
+  <div class="grid">
+    <!-- 左：输入 -->
+    <div>
+      <!-- 每日一句 -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="phead"><span class="em">☀️</span><span>每日一句</span><span class="note">今日能量</span></div>
+        <div class="pbody" style="padding:14px 18px">
+          <div class="daily">
+            <div class="dlbl">TODAY'S NOTE</div>
+            <div class="dquote" id="dailyQuote">……</div>
+            <div class="dnote" id="dailyNote"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="phead"><span class="em">✍️</span><span>写下你的烦心事</span><span class="note">step 1</span></div>
+        <div class="pbody">
+          <div class="cats" id="cats">
+            <button class="cat" data-c="work"><span class="ic">💼</span>职场内耗</button>
+            <button class="cat" data-c="study"><span class="ic">📚</span>考试焦虑</button>
+            <button class="cat" data-c="family"><span class="ic">🏠</span>亲子/家庭</button>
+            <button class="cat" data-c="love"><span class="ic">💔</span>感情困扰</button>
+            <button class="cat" data-c="social"><span class="ic">🫂</span>人际社交</button>
+            <button class="cat" data-c="self"><span class="ic">🌀</span>自我内耗</button>
+            <button class="cat" data-c="health"><span class="ic">🫀</span>健康焦虑</button>
+            <button class="cat" data-c="money"><span class="ic">💰</span>经济压力</button>
+          </div>
+          <textarea id="input" placeholder="这里只有减压舱在听。&#10;想到什么写什么，不用组织语言，哪怕是碎碎念也可以……"></textarea>
+          <div class="meta">
+            <span id="charCount">0 字</span>
+            <span id="tplHint">选个分类会给你一句开头提示</span>
+          </div>
+          <div class="btnrow">
+            <button class="primary" id="btnGen" onclick="generate()">🌿 生成解忧方案</button>
+            <button class="mic" id="btnMic" onclick="toggleMic()">🎤 语音输入</button>
+            <button onclick="document.getElementById('input').value='';updateMeta()">清空</button>
+            <button class="small" onclick="randomPrompt()">🎲 没头绪？给我个开头</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><span class="em">😊</span><span>心情打卡</span><span class="note">记录此刻</span></div>
+        <div class="pbody">
+          <div class="mood-row" id="moodRow">
+            <button class="mood-btn" data-mood="开心" title="开心">😄</button>
+            <button class="mood-btn" data-mood="平静" title="平静">😌</button>
+            <button class="mood-btn" data-mood="疲惫" title="疲惫">😪</button>
+            <button class="mood-btn" data-mood="焦虑" title="焦虑">😰</button>
+            <button class="mood-btn" data-mood="难过" title="难过">😢</button>
+            <button class="mood-btn" data-mood="生气" title="生气">😠</button>
+          </div>
+          <div class="mood-today" id="moodToday"></div>
+          <div class="mood-note" id="moodNote">点一个表情，记录此刻的心情</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><span class="em">📊</span><span>心情晴雨表</span><span class="note">最近 14 天</span></div>
+        <div class="pbody">
+          <div class="weather-legend" id="weatherLegend"></div>
+          <div class="trend" id="trendBox"><div class="tip" style="text-align:center;width:100%">打卡后这里会出现你的情绪趋势</div></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><span class="em">🕯️</span><span>减压舱存档</span><span class="note">仅本机可见</span></div>
+        <div class="pbody" id="archive"><div class="tip" style="text-align:left">还没有存过心事。生成方案后可以点击「存进减压舱」。</div></div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><span class="em">🌬️</span><span>4-7-8 呼吸 · 一分钟降噪</span></div>
+        <div class="pbody">
+          <div class="breath">
+            <div class="breath-ring" id="ring"><div class="txt" id="ringTxt">准备</div></div>
+            <div class="ph" id="phaseTxt">吸气 4 秒 · 屏息 7 秒 · 呼气 8 秒</div>
+            <div class="btnrow" style="justify-content:center">
+              <button class="small" id="btnBreath" onclick="toggleBreath()">开始</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：输出 -->
+    <div>
+      <div class="panel">
+        <div class="phead"><span class="em">💌</span><span>减压舱的回信</span><span class="note">step 2</span></div>
+        <div class="pbody" id="out">
+          <div class="out-empty"><span class="big">🌿</span>写下你的烦心事<br>减压舱会先接住你，再陪你想办法</div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><span class="em">🎴</span><span>解忧卡片</span><span class="note">step 3 · 保存后发朋友圈/小红书</span></div>
+        <div class="pbody">
+          <div class="cardwrap" id="cardWrap" style="display:none">
+            <canvas id="cardCanvas"></canvas>
+            <div class="tip">竖版 3:4，适合小红书 / 朋友圈 · 长按图片可保存</div>
+          </div>
+          <div class="out-empty" id="cardEmpty" style="padding:34px 10px"><span class="big">🎴</span>生成方案后，一键做成好看的卡片</div>
+          <div class="btnrow" id="cardBtns" style="display:none;justify-content:center">
+            <button class="sun" onclick="downloadCard()">⬇️ 保存卡片图片</button>
+            <button class="small" onclick="downloadLong()">📜 保存长图</button>
+            <button class="small" onclick="switchTheme()">🎨 换个配色</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  愿你被温柔以待 · <span style="color:#e88f8f">❤</span> 如果真的很累，请先休息，而不是硬撑<br>
+  每一次卸下，都是为了更轻松地再出发<br>
+  本工具提供情绪陪伴与轻量建议，不能替代专业心理咨询
+</footer>
+
+<div class="toast" id="toast">已保存</div>
+
+<script>
+'use strict';
+
+/* ================= 情绪识别 ================= */
+const EMOTIONS = [
+  { key:'anx',  name:'焦虑', color:'#4aa8d8', words:['焦虑','紧张','压力','担心','害怕','考试','复习','deadline','来不及','睡不着','失眠','心跳','怕考','万一','慌张','心慌','发慌'] },
+  { key:'tire', name:'疲惫', color:'#e8a14b', words:['好累','好倦','累坏','撑不住','崩溃','没电','熬','加班','通宵','睡不够','没休息','精疲','透支','累瘫','身心俱疲'] },
+  { key:'hurt', name:'委屈', color:'#e88f8f', words:['委屈','不公平','背锅','甩锅','被骂','误解','冤枉','凭什么','被说','甩给我','背了'] },
+  { key:'loss', name:'迷茫', color:'#7f9ae8', words:['迷茫','不知道','没方向','意义','选择','纠结','犹豫','不知道该','看不到','未来','前途'] },
+  { key:'angry',name:'生气', color:'#e8745a', words:['生气','愤怒','烦死','讨厌','受不了','气死','恶心','火大','忍不了'] },
+  { key:'lone', name:'孤独', color:'#3fbfb0', words:['孤独','没人','一个人','没人懂','疏远','融不进','被排除','朋友都','孤单'] },
+  { key:'inner',name:'内耗', color:'#9d7ce8', words:['内耗','反复想','想太多','自我怀疑','否定','我是不是','不够好','配不上','后悔','自责','纠结自己'] },
+  { key:'low',  name:'低落', color:'#7f9ae8', words:['低落','没意思','好丧','丧气','无聊','提不起','无趣','心累','麻木','空落落'] },
+  { key:'sick', name:'担忧', color:'#e8a14b', words:['生病','身体','不舒服','症状','体检','疼痛','癌','得病','生病','复发','健康','确诊'] },
+];
+
+/* ================= 分类知识库 ================= */
+const CATS = {
+  work:  { name:'职场内耗', emo:'💼',
+    prompts:['今天上班又被……','这份工作我快撑不下去了……','同事/领导让我觉得……'],
+    hug:['职场里最消耗人的从来不是工作量，而是「明明尽力了还要怀疑自己」。','被工作推着走的日子，连喘口气都像在偷懒——你不是矫情，是真的撑了很久。','能在这样的环境里撑到现在，已经很了不起了。今天的委屈，是真实存在的。'],
+    chg:['每天开工前花 3 分钟列出「今日三件事」，只挑真正推动结果的','把接到的模糊任务复述一遍再确认：「我理解是要……对吗？」','练习「课题分离」：我负责把事做好，评价留给别人','下班前写 3 行工作日志，让成长看得见、可复盘','主动争取一件小事的主导权，找回掌控感'],
+    ctl:['公司的风向和他人的偏好','同事愿不愿意配合、怎么想','已经开会定下的结论','晋升时钟什么时候走到你这里'],
+    acts:[{t:'给今天定一个「最小胜利」',d:'挑一件 15 分钟内能搞定的小事先做掉（回一封邮件、整理一个文档）。用一个小胜利启动一天，动力会滚雪球。',m:'15 分钟'},
+          {t:'把一句憋着的话写成草稿',d:'想对谁说什么，先写进备忘录不发。写完你会看清：哪些是需求，哪些只是情绪。明天再决定要不要说。',m:'5 分钟'},
+          {t:'给自己发一条「战报」',d:'在心里或纸上列出今天扛住的三件事。你不是在熬，你是在积累经验值。',m:'3 分钟'}] },
+  study: { name:'考试焦虑', emo:'📚',
+    prompts:['快考试了，我……','复习进度跟不上，我……','一想到成绩我就……'],
+    hug:['你不是不够努力，你是太怕辜负那个一直坚持的自己。','焦虑不是因为你不行，恰恰是因为你在乎。这份在乎，值得被好好安放。','复习到想哭的时刻，几乎每个认真的人都经历过——你并不孤单。'],
+    chg:['用「错题」代替「分数」来定义今天该补什么','把复习切成 25 分钟一轮，只要求坐满一轮，不要求全懂','每天睡前用一句话总结「今天比昨天多会了什么」','把「来不及了」改写成「从现在起最优路径是什么」','固定一个雷打不动的睡觉底线，状态好才是真的快'],
+    ctl:['卷子和出题人的套路','别人翻了几页书','已经流逝的日子','家人和老师眼里的你该考多少'],
+    acts:[{t:'做一道「最不想面对」的题',d:'翻出你一直绕开的那类题，只做一道。直面它之后你会发现，恐惧远大于难度本身。',m:'10 分钟'},
+          {t:'写一张「已掌握清单」',d:'列出你已经会了的知识点，越多越好。焦虑盯着的都是缺口，这张单子提醒你地基已经打了多高。',m:'5 分钟'},
+          {t:'模拟一次考场开场',d:'设 3 分钟，闭眼想象自己坐进考场、翻开卷子、深呼吸、开始写第一步。预演过的大脑临场更稳。',m:'3 分钟'}] },
+  family:{ name:'亲子/家庭', emo:'🏠',
+    prompts:['家里人又因为我……','爸妈总是不理解我……','每次回家都会……'],
+    hug:['家人之间最难的，是明明相爱却总用错的方式表达——痛是真的，爱也是真的。','你已经在学着不再重复上一代的相处方式了，这件事本身就很难，也很勇敢。','想被理解不是贪心，那是每个人最基础的需要。'],
+    chg:['练习「非暴力表达」：先说事实，再说感受，最后说请求','把「改变他们」的目标降级成「影响一次是一次」','给自己划一条情绪护城河：他们的评价 ≠ 你的价值','每周留一段完全属于自己的「充电时间」，写进日程','找一个能接住你的出口（朋友/日记/运动）'],
+    ctl:['他们用几十年的方式说话','亲戚间的比较与议论','他们此刻的情绪','过去那些没被好好对待的瞬间'],
+    acts:[{t:'写一封不寄出的信',d:'把最想说的话全部写下来，不用修饰、不用礼貌。写完封存。情绪有了去处，就不必在身体里横冲直撞。',m:'10 分钟'},
+          {t:'定义一句你的「暂停咒语」',d:'想一句你专属的话（如「我先去趟洗手间」），下次气氛不对就念出来并离开。退一步不是输，是止损。',m:'2 分钟'},
+          {t:'做一次「角色互换」写作',d:'用父母的口吻写 5 句他们可能会说的话。不是为了原谅，是为了看清：他们的表达方式确实笨拙，但未必都是恶意。',m:'5 分钟'}] },
+  love:  { name:'感情困扰', emo:'💔',
+    prompts:['我和 TA 之间……','这段关系让我……','我好像总是……'],
+    hug:['在感情里反复拉扯的人，往往不是看不清，而是舍不得。这份舍不得，不该被嘲笑。','你值得一段让你安心、不用猜的关系——这句话不需要附加条件。','难过的不是失去一个人，是你曾认真投入过的那部分自己。'],
+    chg:['问自己一个问题：这段关系里，我更爱 TA，还是更怕孤独？','把「TA 怎么想」换成「我要什么」，每周做一件纯粹让自己开心的事','练习一次诚实但不指责的表达：「当你……的时候，我感觉……」','重新分配注意力：朋友、爱好、身体，把鸡蛋放回多个篮子','给自己设一个观察期：三个月后回头看，这段关系让我更好了吗'],
+    ctl:['TA 的心意和选择','TA 改变的速度','别人怎么评价你们','已经说出口的话'],
+    acts:[{t:'写「关系资产负债表」',d:'左边写这段关系带给你的滋养，右边写消耗。写完看清全貌，再决定是修复还是放手。',m:'10 分钟'},
+          {t:'完成一件「一个人也能做」的事',d:'独自看一场电影、吃一顿饭、走一段路。体验一次「我一个人也挺好」，底气回来一半。',m:'1 小时'},
+          {t:'把想发给 TA 的话写进备忘录',d:'冲动时先别发。写下来，睡一觉，明早再看——想发的话和该发的话，往往不一样。',m:'5 分钟'}] },
+  social:{ name:'人际社交', emo:'🫂',
+    prompts:['我总觉得别人……','和人相处让我……','在人群里我……'],
+    hug:['不是你不合群，是有些场合真的需要消耗很多电量才能撑住。','想被接纳、又怕被看穿——这种拉扯本身就让人很累。','你已经很努力地在照顾别人的感受了，也请把一点温柔留给自己。'],
+    chg:['把「表现好」的目标换成「好奇地了解一个人」','练习「被拒绝脱敏」：主动发起一次邀约，把结果当数据不当审判','给自己充电账户充值：独处、运动、爱好，都是社交的备用电池','找到你的「同频小圈」：不需要合群，只需要合拍','记住社交是能量交换，不是单向表演'],
+    ctl:['别人心里的真实看法','聚会的氛围走向','有人是否会在背后议论','已经发生的冷场时刻'],
+    acts:[{t:'发出一次「低成本联结」',d:'给一个你觉得还投缘的人发条消息：分享一首歌、一篇内容、一句问候。关系的裂缝都是从微小的主动开始弥合的。',m:'3 分钟'},
+          {t:'设计你的「社交充电计划」',d:'写下哪些人/场合让你满电、哪些让你掉电。下次日程安排时，有意识地多给满电项留时间。',m:'5 分钟'},
+          {t:'做一次「旁观者视角」复盘',d:'像看电影一样回想今天一次社交：如果主角是别人，你会觉得 TA 表现差吗？往往你对自己比对别人苛刻得多。',m:'5 分钟'}] },
+  self:  { name:'自我内耗', emo:'🌀',
+    prompts:['我总是忍不住反复想……','我觉得自己……','我好像什么也做不好……'],
+    hug:['大脑反复回放那件事，是因为它想保护你——只是方式笨了点。','你对自己说的那些狠话，换成别人说，你一定会替自己委屈。','内耗不是懒，是你对自己要求太高，又没有地方放。'],
+    chg:['给反刍设「营业时间」：每天只允许自己在固定 15 分钟里想它','练习「思维刹车」：念头一来就喊停，然后立刻做一件需要动手的事','用「证据检验法」：写下「我不够好」的三条反例','把「我应该」改成「我选择」——很多压力是语言制造的','每天记一件「今天我做到了」的小事，重建自我信任'],
+    ctl:['念头什么时候冒出来','过去能不能重来','脑内那个苛刻的声音音量','情绪来去的时机'],
+    acts:[{t:'给那个声音改个名',d:'给脑内批评你的声音起个滑稽的名字（比如「杠精二号」）。下次它一开口，你就在心里说：「哦，杠精二号又上班了。」把它从「真理」降级成「背景噪音」。',m:'2 分钟'},
+          {t:'写三行「反证据日记」',d:'写下那个让你难受的结论（如「我很失败」），然后写出三条和它矛盾的事实。哪怕很小，也要写。',m:'5 分钟'},
+          {t:'完成一次 15 分钟「心流小事」',d:'挑一件能让你专注的小事：拼图、做饭、整理相册。心流是反刍最好的解药——大脑没法同时想太多和全神贯注。',m:'15 分钟'}] },
+  health:{ name:'健康焦虑', emo:'🫀',
+    prompts:['最近身体总让我……','一有点不舒服我就……','体检报告让我……'],
+    hug:['对身体敏感的人，不是想太多，而是身体一直在提醒你要照顾好自己。','先别自己吓自己——担忧解决不了问题，但重视和行动可以。','你已经比很多假装没事的人更懂得倾听身体了，这本身就是一种能力。'],
+    chg:['把「万一有病」翻译成「我去做个检查」——担忧只有变成行动才有出口','限定搜索时间：每天最多查 10 分钟权威来源，其余时间不查','做一件「给身体存款」的事：早睡、多喝水、散步','练习身体扫描：把注意力从「想象的症状」拉回「真实的感受」','找一个靠谱的医生长期问诊，代替搜索引擎和脑补'],
+    ctl:['身体偶尔的信号波动','网上吓人的内容','还没发生的检查结果','家族史和先天因素'],
+    acts:[{t:'写「症状观察卡」',d:'记下这次不舒服的时间、感受、持续了多久。客观数据既能让医生更快判断，也能让你从想象回到事实。',m:'5 分钟'},
+          {t:'预约一件拖延已久的健康小事',d:'一直想做的体检、牙医、配眼镜——今天就把它约上。行动是把「悬着的担心」放下的最快方式。',m:'5 分钟'},
+          {t:'做 10 分钟温和运动',d:'拉伸、散步、八段锦都行。轻度运动能给神经系统「降档」，也能让你重新感到身体是自己的盟友。',m:'10 分钟'}] },
+  money:{ name:'经济压力', emo:'💰',
+    prompts:['最近花钱让我……','一想到账单就……','存不下钱让我……'],
+    hug:['为钱焦虑的人，往往不是不会花，而是太想把日子过好。','你不是一个人——这个阶段很多人都在勒紧裤腰带，你已经很努力了。','敢于正视钱的问题，就已经迈出了最难的一步。'],
+    chg:['做一次「金钱体检」：把收入、固定支出、可变支出列在一张纸上','把焦虑来源具体化：是现金流、负债还是不确定的未来？对症才好下药','给自己开一个「安全感账户」：金额无所谓，动作比数字重要','把「我永远存不下钱」改成「我这个月能多存 100」','提升一项能变现的技能——最好的理财是投资自己'],
+    ctl:['大环境和物价走势','已经花掉的钱','别人的收入水平','涨薪和机会到来的时间点'],
+    acts:[{t:'做一张「金钱压力源清单」',d:'写下所有让你有压力的钱的问题，按「1 个月内可控 / 长期 / 完全不可控」分类。你会发现可控的比你以为的多。',m:'10 分钟'},
+          {t:'设一个 10 元起的小定投',d:'今天就设一个自动小额转账（10 元也行）。开始存钱的那一刻，主动权就回到你手里了。',m:'5 分钟'},
+          {t:'盘点一项「隐形资产」',d:'写下你的一项技能、经验或资源，想想它有没有被浪费。人最大的资本常常被自己忽略了。',m:'5 分钟'}] },
+  other: { name:'其它心事', emo:'🌿',
+    prompts:['最近有件事一直压着我……','我也不知道该怎么说，就是……'],
+    hug:['有些难受说不清楚，但它就是实实在在地压着你——这已经足够了。','你愿意把它写下来，就已经在照顾自己了，这一步很多人做不到。','不用急着找出原因，先允许自己不 OK 一会儿。'],
+    chg:['用「5 分钟启动法」：不想做也先做 5 分钟，往往就停不下来了','把大石头切成碎沙：这件事最小的一步是什么？就做那一步','允许自己「糟糕地开始」——完成大于完美','给情绪留出口：写、哭、跑、说，都可以，唯独别憋着','睡前写一行「明天最重要的一件事」，醒来就有方向'],
+    ctl:['事情什么时候有转机','别人会怎么反应','已经发生无法撤销的部分','情绪离开的准确时间'],
+    acts:[{t:'启动一个 5 分钟任务',d:'定个闹钟，做那件压着你的事 5 分钟，到点可以停。多数时候你会发现：最难的不是做，是开始。',m:'5 分钟'},
+          {t:'给情绪画个像',d:'闭上眼，如果此刻的情绪是一个形状、颜色、天气，它是什么？画出来或写下来。被看见的情绪，威力就减半。',m:'5 分钟'},
+          {t:'布置一个「明日锚点」',d:'决定明天醒来后的第一个动作（喝水、拉开窗帘、写三行日记）。低谷期的人最需要的，是一个确定的起点。',m:'2 分钟'}] },
+};
+
+const CLOSINGS = [
+  '今天你已经做得够多了，剩下的交给时间。<span class="heart">❤</span>',
+  '不需要马上好起来，先让自己舒服一点点。<span class="heart">❤</span>',
+  '减压舱会一直在这里，随时可以回来说。<span class="heart">❤</span>',
+  '你不是一个人扛着这件事。<span class="heart">❤</span>',
+  '你比你想象中更有韧性，慢慢来。<span class="heart">❤</span>',
+  '卸下一点重量，再往前一步就很了不起。<span class="heart">❤</span>',
+  '今天没能解决的问题，不代表明天也解决不了。<span class="heart">❤</span>',
+];
+
+/* 每日一句 */
+const DAILY_QUOTES = [
+  { q:'允许自己慢一点，也是在前进。', n:'—— 致努力的你' },
+  { q:'你不需要一口气变好，只需要今天比昨天轻松一点点。', n:'—— 减压舱' },
+  { q:'情绪像天气，会来，也会走。', n:'—— 今天也请照顾好自己' },
+  { q:'能走到今天，你已经比很多人勇敢了。', n:'—— 别忘了夸夸自己' },
+  { q:'把今天过好，未来会自己慢慢变清楚。', n:'—— 慢慢来' },
+  { q:'你不是懒，你只是需要休息一下再出发。', n:'—— 允许自己充电' },
+  { q:'有些路要慢慢走，才看得清风景。', n:'—— 别着急' },
+  { q:'你已经做得很好了，别对自己太苛刻。', n:'—— 温柔一点' },
+  { q:'每一次深呼吸，都是在替自己松绑。', n:'—— 现在试试' },
+  { q:'今天的小事，是明天的大底气。', n:'—— 从最小的一步开始' },
+  { q:'难的时候，记得你还有自己这个盟友。', n:'—— 永远站在自己这边' },
+  { q:'成长不是不累，是累的时候知道怎么照顾自己。', n:'—— 这就是进步' },
+];
+
+/* ================= 状态 ================= */
+let curCat = null, lastPlan = null, themeIdx = 0;
+const THEMES = [
+  { name:'森林青', a:'#35b39a', b:'#a8e0cf', ink:'#2c3a36' },
+  { name:'薄荷绿', a:'#3fbfb0', b:'#c0ece0', ink:'#27443d' },
+  { name:'湖水蓝', a:'#4aa8d8', b:'#b3dff2', ink:'#2c3f4a' },
+  { name:'暖阳橙', a:'#ef9f6b', b:'#f8d2ab', ink:'#4a3a2e' },
+];
+
+/* ================= 交互 ================= */
+document.querySelectorAll('.cat').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('.cat').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    curCat = b.dataset.c;
+    const c = CATS[curCat];
+    document.getElementById('tplHint').textContent = '试试这样开头：' + c.prompts[0];
+    const ta = document.getElementById('input');
+    if (!ta.value.trim()) { ta.placeholder = c.prompts[0] + '……'; }
+  };
+});
+document.getElementById('input').addEventListener('input', updateMeta);
+function updateMeta(){
+  const v = document.getElementById('input').value.trim();
+  document.getElementById('charCount').textContent = v.length + ' 字';
+}
+function randomPrompt(){
+  const pool = Object.values(CATS).flatMap(c => c.prompts);
+  const p = pool[Math.floor(Math.random()*pool.length)];
+  const ta = document.getElementById('input');
+  ta.value = p + '……'; ta.focus(); updateMeta();
+}
+
+/* ================= 生成方案 ================= */
+function detectEmotion(text){
+  let best = null, bestN = 0;
+  for (const e of EMOTIONS){
+    let n = 0;
+    for (const w of e.words) if (text.includes(w)) n++;
+    if (n > bestN) { bestN = n; best = e; }
+  }
+  if (!best){
+    if (/\?|？/.test(text) || /怎么办|该不该|要不要/.test(text)) best = EMOTIONS.find(e=>e.key==='loss');
+    else best = EMOTIONS.find(e=>e.key==='inner');
+  }
+  return { emo: best, hit: bestN };
+}
+
+function detectCat(text){
+  if (curCat) return curCat;
+  // 每个分类的匹配词按「强/弱」两档，强词命中加分更高，避免单字和泛词误判
+  const map = [
+    ['work', [
+      ['工作','上班','领导','老板','同事','加班','职场','汇报','绩效','开会','甲方','离职','辞职','面试','工资低','内卷','KPI'],
+      ['需求','项目','任务','会议','方案']
+    ]],
+    ['study', [
+      ['考试','复习','成绩','作业','论文','学校','录取','上岸','高考','考研','考公','挂科','及格','分数','知识点','错题','期末','备考'],
+      ['上课','学习','读书','做题','背单词']
+    ]],
+    ['family', [
+      ['爸妈','妈妈','爸爸','父母','家里','孩子','儿子','女儿','亲戚','家里人','家庭','母亲','父亲','婆婆','岳母','弟弟','妹妹','哥哥','姐姐'],
+      ['回家','家长','长辈']
+    ]],
+    ['love', [
+      ['男朋友','女朋友','对象','前任','分手','喜欢的人','暧昧','结婚','异地恋','恋爱','暗恋','失恋','复合','相亲','表白','吃醋'],
+      ['感情','关系','在一起','冷战','吵架']
+    ]],
+    ['social', [
+      ['朋友','同学','室友','社交','聚会','人缘','被孤立','合群','同事关系','人际','圈子'],
+      ['尴尬','熟人','搭话']
+    ]],
+    ['self', [
+      ['内耗','自我怀疑','自我否定','想太多','不配','自责','后悔','精神内耗','情绪内耗','反刍','纠结','患得患失'],
+      ['我是不是','我不够好','我不行','我总是']
+    ]],
+    ['health', [
+      ['生病','身体','不舒服','症状','体检','疼痛','癌','健康','复发','头疼','失眠','睡不着','胸闷','心悸','确诊','治疗','住院','吃药'],
+      ['难受','没力气','生病','得病']
+    ]],
+    ['money', [
+      ['钱','账单','工资','开销','存钱','花钱','没钱','穷','房贷','车贷','还款','负债','欠钱','信用卡','花呗','房租','省吃俭用','入不敷出'],
+      ['消费','支出','收入','经济']
+    ]],
+  ];
+  let best='other', bn=0;
+  for (const [k, tiers] of map){
+    const strong = tiers[0], weak = tiers[1] || [];
+    let n = 0;
+    for (const w of strong) if (text.includes(w)) n += 3;
+    for (const w of weak) if (text.includes(w)) n += 1;
+    if (n > bn){ bn = n; best = k; }
+  }
+  // 命中的分太低，说明用户没明确指向，归为「其它心事」更贴合
+  if (bn < 3) best = 'other';
+  return best;
+}
+
+function pick(arr, seed){ return arr[Math.abs(seed) % arr.length]; }
+
+/* 针对用户写到的具体「触发词」做回应，让方案真正对上心事 */
+const HUG_HOOKS = {
+  work: [
+    ['领导|老板|上司', '被上级的情绪和标准来回拉扯，真的很消耗。'],
+    ['同事|甲方|客户', '和不对盘的人配合，本身就是一种隐形的加班。'],
+    ['加班|熬夜|通宵', '身体已经在替你说不了，别忽视这个信号。'],
+    ['离职|辞职|跳槽', '有离开的念头不是冲动，是身体在提醒你该看看别的可能。'],
+    ['工资|薪水|钱', '付出和回报不对等的时候，委屈最真实。'],
+  ],
+  study: [
+    ['考试|备考|期末|考研|高考|考公', '大考前的那种紧绷，几乎每个认真的人都懂。'],
+    ['复习|背|记不住', '背了又忘不是笨，是方法或节奏需要调一下。'],
+    ['成绩|分数|排名', '分数衡量的是这一次，不是你这个人。'],
+    ['挂科|不及格|差', '一次失利放在人生这条长线上，真的没那么大。'],
+  ],
+  family: [
+    ['父母|爸妈|妈妈|爸爸', '和至亲之间又爱又别扭的感觉，最难说出口。'],
+    ['孩子|儿子|女儿', '你为孩子操的心，比说出来的多得多。'],
+    ['吵架|争吵|冲突', '每一次争吵背后，其实都藏着一句没说出口的需要。'],
+    ['逼婚|催|安排', '被安排的人生，再顺也会让人觉得不是自己的。'],
+  ],
+  love: [
+    ['分手|失恋|离开', '认真爱过的人，离开时那种空落落是真实的。'],
+    ['吵架|冷战', '冷战里最熬人的，是明明在乎却都不肯先开口。'],
+    ['喜欢|暗恋|暧昧', '不确定对方心意时的反复猜测，最耗心神。'],
+    ['结婚|彩礼|未来', '关于未来的那些现实问题，压下来时格外沉重。'],
+  ],
+  social: [
+    ['朋友|同学|室友', '越是熟悉的人之间，那些微妙的距离越让人难受。'],
+    ['孤立|排挤|被说', '被排除在外的感觉，比表面的冲突更伤人。'],
+    ['聚会|社交|场合', '有些场合要消耗很多电量才能撑下来，你不是一个人。'],
+  ],
+  self: [
+    ['内耗|反复想|想太多', '大脑停不下来地反刍，其实是想保护你。'],
+    ['后悔|自责|怪自己', '你对自己的责备，往往比事情本身更重。'],
+    ['不配|不够好|不行', '那个「我不够好」的声音，不是事实，只是旧回声。'],
+  ],
+  health: [
+    ['身体|不舒服|症状|疼', '对身体敏感的提醒，恰恰是你开始在乎自己的表现。'],
+    ['体检|检查|报告', '等待结果和猜测结果，有时比结果本身更折磨。'],
+    ['失眠|睡不着', '睡不好会放大一切负面感受，这不是你的错。'],
+  ],
+  money: [
+    ['钱|账单|开销|花', '为钱发愁的时候，快乐都会打折。'],
+    ['欠|负债|还', '背着债的日子，每一步都走得很重。'],
+    ['存|攒|工资', '想为未来攒点底气，却总觉得力不从心。'],
+  ],
+};
+
+function buildHug(text, cat, emo, seed, snippet){
+  const hooks = HUG_HOOKS[cat.key] || [];
+  let hit = null;
+  for (const h of hooks){
+    if (h.re.test(text)){ hit = h.msg; break; }
+  }
+  const base = pick(cat.hug, seed);
+  if (hit){
+    return hit + base + '你写下的「' + snippet + '」，我认真读到了。';
+  }
+  return base + '你写下的「' + snippet + '」，我认真读到了。';
+}
+
+/* 把 HUG_HOOKS 里的字符串正则预编译为 RegExp 对象，避免每次 buildHug 重复编译 */
+(function precompileHooks(){
+  for (const k in HUG_HOOKS){
+    HUG_HOOKS[k] = HUG_HOOKS[k].map(([pat, msg]) => ({ re: new RegExp(pat), msg }));
+  }
+})();
+
+function generate(){
+  const text = document.getElementById('input').value.trim();
+  if (!text){ toast('先写一句吧，哪怕只有「我好累」三个字'); return; }
+  const btn = document.getElementById('btnGen');
+  btn.disabled = true; btn.textContent = '🌿 减压舱在想……';
+
+  setTimeout(() => {
+    const catKey = detectCat(text);
+    const cat = CATS[catKey];
+    const { emo } = detectEmotion(text);
+    const seed = text.length + (text.charCodeAt(0)||0);
+
+    // 1) 共情 —— 提取用户写到的具体「点」，做针对性回应，而不是机械拼接
+    const snippet = text.length > 16 ? text.slice(0,16) + '…' : text;
+    const hug = buildHug(text, cat, emo, seed, snippet);
+
+    // 2) 拆解
+    const chg = [...cat.chg].sort(()=>Math.random()-0.5).slice(0,3);
+    const ctl = [...cat.ctl].sort(()=>Math.random()-0.5).slice(0,3);
+
+    // 3) 行动
+    const acts = cat.acts.slice(0, 2 + (seed % 2));
+
+    lastPlan = { text, catKey, cat, emo, hug, chg, ctl, acts,
+      closing: pick(CLOSINGS, seed + acts.length),
+      time: new Date().toLocaleDateString('zh-CN', {month:'long', day:'numeric'}) };
+
+    render(lastPlan);
+    drawCard(lastPlan);
+    document.getElementById('cardWrap').style.display = 'block';
+    document.getElementById('cardEmpty').style.display = 'none';
+    document.getElementById('cardBtns').style.display = 'flex';
+    btn.disabled = false; btn.textContent = '🌿 生成解忧方案';
+  }, 500);
+}
+
+function render(p){
+  const box = document.getElementById('out');
+  box.innerHTML = `
+    <div class="fade">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:12px;background:${p.emo.color}22;color:${p.emo.color};
+          padding:4px 11px;border-radius:99px;border:1px solid ${p.emo.color}55">
+          情绪：${p.emo.name}</span>
+        <span style="font-size:12px;background:#eef5f1;color:#51635c;padding:4px 11px;border-radius:99px">
+          ${p.cat.emo} ${p.cat.name}</span>
+      </div>
+
+      <div class="block b-hug">
+        <h3>🤍 先接住你 <span class="tagx">不说教，只陪着</span></h3>
+        <p>${esc(p.hug)}</p>
+      </div>
+
+      <div class="block" style="background:#fff;border-color:var(--line)">
+        <h3>🔍 拆开看看 <span class="tagx">分清哪些能动手，哪些该放手</span></h3>
+        <div class="split">
+          <div class="col chg"><h4>✋ 我能改变的</h4><ul>${p.chg.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+          <div class="col ctl"><h4>🍃 我控制不了的</h4><ul>${p.ctl.map(x=>`<li>${x}</li>`).join('')}</ul></div>
+        </div>
+      </div>
+
+      <div class="block acts">
+        <h3>🚶 今天就能做的 ${p.acts.length} 件小事 <span class="tagx">5 分钟内可完成</span></h3>
+        ${p.acts.map((a,i)=>`
+          <div class="act">
+            <div class="no">${i+1}</div>
+            <div><div class="t">${a.t}<span class="time">${a.m}</span></div>
+                 <div class="d">${a.d}</div></div>
+          </div>`).join('')}
+      </div>
+
+      <div class="closing">${p.closing}</div>
+      <div class="btnrow" style="justify-content:center;margin-top:14px">
+        <button class="small" onclick="saveToTree()">🕯️ 存进减压舱</button>
+        <button class="small" onclick="copyPlan()">📋 复制文字版</button>
+      </div>
+    </div>`;
+}
+
+/* ================= 卡片绘制 ================= */
+function wrapLines(g, text, maxW){
+  const out = []; let line = '';
+  for (const ch of text){
+    const test = line + ch;
+    if (g.measureText(test).width > maxW && line){ out.push(line); line = ch; }
+    else line = test;
+  }
+  if (line) out.push(line);
+  return out;
+}
+
+function drawCard(p){
+  const W = 1080;
+  const cv = document.getElementById('cardCanvas');
+  const g = cv.getContext('2d');
+  const t = THEMES[themeIdx];
+  const F = '"PingFang SC","Microsoft YaHei",sans-serif';
+
+  /* ---- 用离屏 canvas 精确测量总高度，杜绝溢出 ---- */
+  const meas = document.createElement('canvas').getContext('2d');
+
+  // 共情区
+  meas.font = '400 30px ' + F;
+  const hugL = wrapLines(meas, p.hug, 936);
+  const hugH = 30 + 6 + 22 + hugL.length * 50 + 34;   // 标题30 + 分隔线6+间距 + 文字 + 底部留白
+
+  // 拆解区
+  meas.font = '400 24px ' + F;
+  const chgL = p.chg.map(s => wrapLines(meas, '· ' + s, 396));
+  const ctlL = p.ctl.map(s => wrapLines(meas, '· ' + s, 396));
+  const chgLines = chgL.reduce((a,l)=>a+l.length,0);
+  const ctlLines = ctlL.reduce((a,l)=>a+l.length,0);
+  // 每个条目之间额外留 14px，条目数 = chg.length
+  const chgBoxH = 84 + chgLines * 38 + (chgL.length - 1) * 14 + 22;
+  const ctlBoxH = 84 + ctlLines * 38 + (ctlL.length - 1) * 14 + 22;
+  const colBox = Math.max(chgBoxH, ctlBoxH);
+  const splitH = 30 + 6 + 22 + colBox + 56;           // 标题30 + 分隔线 + 色块 + 底部间距
+
+  // 行动区
+  const actL = p.acts.map(a => {
+    let l = wrapLines(meas, a.d, 862);
+    if (l.length > 2) { l = l.slice(0, 2); l[1] = l[1].slice(0, -1) + '…'; }
+    return l;
+  });
+  let actH = 30 + 6 + 28;                             // 标题30 + 分隔线 + 间距
+  actL.forEach(l => { actH += 42 + l.length * 38 + 26; });
+
+  // 顶部（标题+标签区）固定 372
+  const topH = 372;
+  const footerH = 120;
+
+  const need = topH + hugH + splitH + actH + footerH;
+  const H = Math.max(1440, need);
+
+  cv.width = W; cv.height = H;
+
+  const grd = g.createLinearGradient(0,0,W,H);
+  grd.addColorStop(0, t.b); grd.addColorStop(.55, '#fdfefd'); grd.addColorStop(1, t.a + '33');
+  g.fillStyle = grd; g.fillRect(0,0,W,H);
+
+  const top = g.createLinearGradient(0,0,W,300);
+  top.addColorStop(0, t.a); top.addColorStop(1, t.b);
+  g.fillStyle = top; roundRect(g, 0, 0, W, 300, [0,0,60,60]); g.fill();
+
+  g.fillStyle = 'rgba(255,255,255,.92)';
+  g.font = '600 44px "PingFang SC","Microsoft YaHei",sans-serif';
+  g.fillText('🌿 情绪减压舱', 72, 118);
+  g.font = '300 26px "PingFang SC","Microsoft YaHei",sans-serif';
+  g.fillStyle = 'rgba(255,255,255,.8)';
+  g.fillText('一份写给你的解忧方案 · ' + p.time, 72, 168);
+
+  g.font = '500 24px "PingFang SC","Microsoft YaHei",sans-serif';
+  const tags = [p.emo.name, p.cat.name];
+  let tx = 72;
+  tags.forEach(s => {
+    const w = g.measureText(s).width + 44;
+    g.fillStyle = 'rgba(255,255,255,.22)';
+    roundRect(g, tx, 196, w, 52, 26); g.fill();
+    g.fillStyle = '#fff'; g.fillText(s, tx + 22, 231);
+    tx += w + 14;
+  });
+
+  let y = 372;
+
+  g.fillStyle = t.ink;
+  g.font = '600 34px ' + F;
+  g.fillText('🤍  先接住你', 72, y); y += 30;
+  g.fillStyle = 'rgba(0,0,0,.07)';
+  roundRect(g, 72, y, 936, 6, 3); g.fill();
+  y += 52;
+  g.fillStyle = '#3c4a44';
+  g.font = '400 30px ' + F;
+  hugL.forEach(l => { g.fillText(l, 72, y); y += 50; });
+  y += 34;
+
+  g.fillStyle = t.ink;
+  g.font = '600 34px ' + F;
+  g.fillText('🔍  能改变 / 控制不了', 72, y); y += 30;
+  g.fillStyle = 'rgba(0,0,0,.07)';
+  roundRect(g, 72, y, 936, 6, 3); g.fill();
+  y += 50;
+
+  const colW = 452, colTop = y;
+  g.fillStyle = 'rgba(63,191,176,.14)';
+  roundRect(g, 72, colTop, colW, colBox, 22); g.fill();
+  g.fillStyle = '#2f7f72'; g.font = '600 26px ' + F;
+  g.fillText('✋ 我能改变的', 100, colTop + 42);
+  let ly = colTop + 84;
+  g.font = '400 24px ' + F;
+  g.fillStyle = '#3c4a44';
+  chgL.forEach(lines => { lines.forEach(l => { g.fillText(l, 100, ly); ly += 38; }); ly += 14; });
+
+  g.fillStyle = 'rgba(160,150,170,.16)';
+  roundRect(g, 556, colTop, colW, colBox, 22); g.fill();
+  g.fillStyle = '#5c5566'; g.font = '600 26px ' + F;
+  g.fillText('🍃 控制不了的', 584, colTop + 42);
+  let ry = colTop + 84;
+  g.font = '400 24px ' + F;
+  g.fillStyle = '#3c4a44';
+  ctlL.forEach(lines => { lines.forEach(l => { g.fillText(l, 584, ry); ry += 38; }); ry += 14; });
+
+  y = colTop + colBox + 56;
+
+  g.fillStyle = t.ink;
+  g.font = '600 34px ' + F;
+  g.fillText('🚶  今天就能做的 ' + p.acts.length + ' 件小事', 72, y); y += 30;
+  g.fillStyle = 'rgba(0,0,0,.07)';
+  roundRect(g, 72, y, 936, 6, 3); g.fill();
+  y += 54;
+
+  p.acts.forEach((a,i) => {
+    const cg = g.createLinearGradient(72, 0, 200, 0);
+    cg.addColorStop(0, '#3fbfb0'); cg.addColorStop(1, t.a);
+    g.fillStyle = cg; g.beginPath(); g.arc(102, y + 6, 24, 0, Math.PI*2); g.fill();
+    g.fillStyle = '#fff'; g.font = '600 24px ' + F;
+    g.fillText(String(i+1), 95, y + 15);
+    g.fillStyle = '#2c3a36'; g.font = '600 27px ' + F;
+    g.fillText(a.t, 146, y + 8);
+    const tw = g.measureText(a.t).width;
+    g.font = '500 18px ' + F;
+    g.fillStyle = 'rgba(63,191,176,.95)';
+    roundRect(g, 156 + tw, y - 12, g.measureText(a.m).width + 30, 30, 15); g.fill();
+    g.fillStyle = '#fff';
+    g.fillText(a.m, 171 + tw, y + 8);
+    y += 42;
+    g.fillStyle = '#51635c'; g.font = '400 24px ' + F;
+    actL[i].forEach(l => { g.fillText(l, 146, y); y += 38; });
+    y += 26;
+  });
+
+  g.fillStyle = 'rgba(0,0,0,.045)';
+  roundRect(g, 72, y, 936, 2, 1); g.fill();
+  g.fillStyle = '#8aa39a'; g.font = '400 22px ' + F;
+  g.fillText('愿你被温柔以待 ❤   如果很累，请先休息，而不是硬撑', 72, y + 54);
+}
+
+function roundRect(g, x, y, w, h, r){
+  const rr = Array.isArray(r) ? r : [r,r,r,r];
+  g.beginPath();
+  g.moveTo(x + rr[0], y);
+  g.lineTo(x + w - rr[1], y); g.quadraticCurveTo(x + w, y, x + w, y + rr[1]);
+  g.lineTo(x + w, y + h - rr[2]); g.quadraticCurveTo(x + w, y + h, x + w - rr[2], y + h);
+  g.lineTo(x + rr[3], y + h); g.quadraticCurveTo(x, y + h, x, y + h - rr[3]);
+  g.lineTo(x, y + rr[0]); g.quadraticCurveTo(x, y, x + rr[0], y);
+  g.closePath();
+}
+
+function downloadCard(){
+  const cv = document.getElementById('cardCanvas');
+  cv.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = '情绪减压舱_' + Date.now() + '.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast('卡片已保存 🎴 去发朋友圈吧');
+  }, 'image/png');
+}
+
+/* 长图分享：把完整回信绘制成竖向长图 */
+function downloadLong(){
+  if (!lastPlan) return;
+  const p = lastPlan;
+  const W = 720;
+  const PAD = 48;
+  const F = '"PingFang SC","Microsoft YaHei",sans-serif';
+  const t = THEMES[themeIdx];
+  const cv = document.createElement('canvas');
+  const g = cv.getContext('2d');
+
+  function wl(text, maxW, size, weight){
+    g.font = (weight||'400') + ' ' + size + 'px ' + F;
+    const out = []; let line = '';
+    for (const ch of text){
+      const test = line + ch;
+      if (g.measureText(test).width > maxW && line){ out.push(line); line = ch; }
+      else line = test;
+    }
+    if (line) out.push(line);
+    return out;
+  }
+
+  // 预计算高度
+  g.font = '600 34px ' + F;
+  const title = '🌿 情绪减压舱 · 解忧方案';
+  const sub = p.time + ' · 情绪：' + p.emo.name + ' · ' + p.cat.emo + p.cat.name;
+  const hugL = wl(p.hug, W - PAD*2, 26);
+  const chgL = p.chg.map(s => wl('· ' + s, W - PAD*2 - 20, 24));
+  const ctlL = p.ctl.map(s => wl('· ' + s, W - PAD*2 - 20, 24));
+  const actL = p.acts.map(a => wl(a.d, W - PAD*2 - 40, 24));
+  const closingText = p.closing.replace(/<[^>]+>/g,'');
+
+  let H = 0;
+  H += PAD;                                    // top
+  H += 60 + 40 + 30;                           // title + sub
+  H += 40 + hugL.length*40 + 30;               // hug
+  H += 40 + 30 + 30;                           // chg header
+  chgL.forEach(l => H += l.length*36 + 12);
+  H += 30 + 30;                                // ctl header
+  ctlL.forEach(l => H += l.length*36 + 12);
+  H += 30 + 40;                                // act header
+  p.acts.forEach((a,i) => H += 40 + actL[i].length*36 + 20);
+  H += 40 + 40;                                // closing
+  H += PAD;
+
+  cv.width = W; cv.height = H;
+
+  // 背景
+  const grd = g.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0, t.b); grd.addColorStop(.2, '#fdfefd'); grd.addColorStop(1, t.a + '22');
+  g.fillStyle = grd; g.fillRect(0,0,W,H);
+
+  let y = PAD;
+
+  // 标题
+  g.fillStyle = t.ink; g.font = '600 34px ' + F;
+  g.fillText(title, PAD, y + 40); y += 40;
+  g.fillStyle = '#8aa39a'; g.font = '400 22px ' + F;
+  g.fillText(sub, PAD, y + 30); y += 30 + 30;
+
+  // 分割线函数
+  function hrule(px){
+    g.fillStyle = 'rgba(0,0,0,.06)';
+    roundRect(g, PAD, px, W-PAD*2, 4, 2); g.fill();
+  }
+
+  // 共情
+  g.fillStyle = t.ink; g.font = '600 28px ' + F;
+  g.fillText('🤍 先接住你', PAD, y + 30); y += 30 + 20;
+  g.fillStyle = '#3c4a44'; g.font = '400 26px ' + F;
+  hugL.forEach(l => { g.fillText(l, PAD, y + 10); y += 40; });
+  y += 10;
+
+  // 能改变
+  g.fillStyle = '#2f7f72'; g.font = '600 28px ' + F;
+  g.fillText('✋ 我能改变的', PAD, y + 30); y += 30 + 20;
+  g.fillStyle = '#3c4a44'; g.font = '400 24px ' + F;
+  chgL.forEach(lines => { lines.forEach(l => { g.fillText(l, PAD + 10, y + 6); y += 36; }); y += 12; });
+
+  // 控制不了
+  g.fillStyle = '#5c5566'; g.font = '600 28px ' + F;
+  g.fillText('🍃 控制不了的', PAD, y + 30); y += 30 + 20;
+  g.fillStyle = '#3c4a44'; g.font = '400 24px ' + F;
+  ctlL.forEach(lines => { lines.forEach(l => { g.fillText(l, PAD + 10, y + 6); y += 36; }); y += 12; });
+
+  // 行动
+  g.fillStyle = t.ink; g.font = '600 28px ' + F;
+  g.fillText('🚶 今天就能做的 ' + p.acts.length + ' 件小事', PAD, y + 30); y += 30 + 20;
+  p.acts.forEach((a,i) => {
+    g.fillStyle = '#3fbfb0'; g.beginPath(); g.arc(PAD + 16, y + 6, 14, 0, Math.PI*2); g.fill();
+    g.fillStyle = '#fff'; g.font = '600 18px ' + F; g.fillText(String(i+1), PAD + 11, y + 13);
+    g.fillStyle = '#2c3a36'; g.font = '600 25px ' + F; g.fillText(a.t + '（' + a.m + '）', PAD + 40, y + 12);
+    y += 40;
+    g.fillStyle = '#51635c'; g.font = '400 24px ' + F;
+    actL[i].forEach(l => { g.fillText(l, PAD + 40, y + 4); y += 36; });
+    y += 20;
+  });
+
+  // 收尾
+  hrule(y); y += 30;
+  g.fillStyle = '#8aa39a'; g.font = '400 24px ' + F;
+  g.fillText(closingText, PAD, y + 10); y += 30;
+
+  cv.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b);
+    a.download = '情绪减压舱长图_' + Date.now() + '.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    toast('长图已保存 📜 分享给朋友吧');
+  }, 'image/png');
+}
+
+function switchTheme(){ themeIdx = (themeIdx + 1) % THEMES.length; if (lastPlan) drawCard(lastPlan); toast('配色：' + THEMES[themeIdx].name); }
+
+/* ================= 复制 / 存档 ================= */
+function planText(){
+  if (!lastPlan) return '';
+  const p = lastPlan;
+  return `【情绪减压舱 · ${p.time}】\n情绪标签：${p.emo.name} / ${p.cat.name}\n\n🤍 先接住你\n${p.hug}\n\n🔍 能改变的\n${p.chg.map(x=>'· '+x).join('\n')}\n\n🍃 控制不了的\n${p.ctl.map(x=>'· '+x).join('\n')}\n\n🚶 今天就能做的 ${p.acts.length} 件小事\n${p.acts.map((a,i)=>`${i+1}. ${a.t}（${a.m}）\n   ${a.d}`).join('\n')}\n\n${p.closing.replace(/<[^>]+>/g,'')}`;
+}
+function copyPlan(){ navigator.clipboard.writeText(planText()).then(()=>toast('文字版已复制')); }
+
+const KEY = 'decompression_archive';
+function saveToTree(){
+  if (!lastPlan) return;
+  let a = []; try { a = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){}
+  a.unshift({ t: lastPlan.text.slice(0,50), e: lastPlan.emo.name, c: lastPlan.emo.color,
+              cat: lastPlan.cat.name, d: new Date().toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) });
+  a = a.slice(0, 10);
+  localStorage.setItem(KEY, JSON.stringify(a));
+  renderArchive(); toast('已存进减压舱 🕯️');
+}
+function renderArchive(){
+  let a = []; try { a = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){}
+  const box = document.getElementById('archive');
+  if (!a.length){ box.innerHTML = '<div class="tip" style="text-align:left">还没有存过心事。生成方案后可以点击「存进减压舱」。</div>'; return; }
+  box.innerHTML = a.map((it,i)=>`
+    <div class="arch" onclick="reload(${i})">
+      <span class="dotp" style="background:${it.c}"></span>
+      <span class="txt">${esc(it.t)}</span>
+      <span class="dt">${it.e} · ${it.d}</span>
+      <span class="x" onclick="event.stopPropagation();delArch(${i})">✕</span>
+    </div>`).join('');
+}
+function reload(i){
+  let a = []; try { a = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){}
+  if (a[i]){ document.getElementById('input').value = a[i].t; updateMeta(); toast('已取回这封心事'); }
+}
+function delArch(i){
+  let a = []; try { a = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){}
+  a.splice(i,1); localStorage.setItem(KEY, JSON.stringify(a)); renderArchive();
+}
+
+/* ================= 语音输入 ================= */
+let recog = null, recOn = false;
+function toggleMic(){
+  const btn = document.getElementById('btnMic');
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR){ toast('当前浏览器不支持语音输入，请用 Chrome/Edge'); return; }
+  if (recOn){ stopMic(); return; }
+  recog = new SR();
+  recog.lang = 'zh-CN';
+  recog.interimResults = true;
+  recog.continuous = true;
+  const ta = document.getElementById('input');
+  const base = ta.value;
+  recog.onresult = (e) => {
+    let final = '', interim = '';
+    for (let i = 0; i < e.results.length; i++){
+      const r = e.results[i];
+      if (r.isFinal) final += r[0].transcript;
+      else interim += r[0].transcript;
+    }
+    ta.value = base + final + interim;
+    updateMeta();
+  };
+  recog.onend = () => { stopMic(); };
+  recog.onerror = () => { stopMic(); };
+  try {
+    recog.start();
+    recOn = true;
+    btn.classList.add('on'); btn.textContent = '🔴 停止';
+    toast('正在听你说……');
+  } catch(e){
+    stopMic();
+    toast('无法启动麦克风，请检查权限');
+  }
+}
+function stopMic(){
+  const r = recog;
+  recog = null;
+  if (r){ try{ r.stop(); }catch(e){} }
+  recOn = false;
+  const btn = document.getElementById('btnMic');
+  btn.classList.remove('on'); btn.textContent = '🎤 语音输入';
+}
+
+/* ================= 心情打卡 & 晴雨表 ================= */
+const MOODS = {
+  '开心':{ e:'😄', c:'#f2b95c' },
+  '平静':{ e:'😌', c:'#35b39a' },
+  '疲惫':{ e:'😪', c:'#9bb5a8' },
+  '焦虑':{ e:'😰', c:'#4aa8d8' },
+  '难过':{ e:'😢', c:'#7f9ae8' },
+  '生气':{ e:'😠', c:'#e8745a' },
+};
+const MOOD_KEY = 'decompression_moods';
+function todayKey(){ const d = new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function getMoods(){ try { return JSON.parse(localStorage.getItem(MOOD_KEY) || '{}'); } catch(e){ return {}; } }
+function setMood(name){
+  const m = getMoods();
+  m[todayKey()] = { name, ts: Date.now() };
+  localStorage.setItem(MOOD_KEY, JSON.stringify(m));
+  renderMood(); renderWeather();
+  toast('已记录今天的心情 ' + MOODS[name].e);
+}
+function renderMood(){
+  const m = getMoods();
+  const today = m[todayKey()];
+  document.querySelectorAll('.mood-btn').forEach(b => {
+    b.classList.toggle('on', today && today.name === b.dataset.mood);
+  });
+  if (today){
+    document.getElementById('moodToday').textContent = '今天的心情：' + MOODS[today.name].e + ' ' + today.name;
+    document.getElementById('moodNote').textContent = '换个表情可覆盖今天的记录';
+  } else {
+    document.getElementById('moodToday').textContent = '';
+    document.getElementById('moodNote').textContent = '点一个表情，记录此刻的心情';
+  }
+}
+function renderWeather(){
+  const m = getMoods();
+  const keys = Object.keys(m).sort();
+  const box = document.getElementById('trendBox');
+  const legend = document.getElementById('weatherLegend');
+  // 图例
+  legend.innerHTML = Object.entries(MOODS).map(([k,v]) => `<span><span class="sw" style="background:${v.c}"></span>${v.e} ${k}</span>`).join('');
+  if (!keys.length){ box.innerHTML = '<div class="tip" style="text-align:center;width:100%">打卡后这里会出现你的情绪趋势</div>'; return; }
+  // 最近 14 天
+  const days = [];
+  const now = new Date();
+  for (let i = 13; i >= 0; i--){
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const k = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    days.push({ k, d });
+  }
+  const data = days.map(x => m[x.k] ? m[x.k].name : null);
+  const counts = {};
+  data.forEach(n => { if (n) counts[n] = (counts[n]||0)+1; });
+  const maxC = Math.max(1, ...Object.values(counts));
+  const barHtml = Object.entries(MOODS).map(([k,v]) => `
+    <div class="bar-row">
+      <span class="bar-lbl">${v.e} ${k}</span>
+      <div class="bar-track"><div class="bar-fill" style="width:${((counts[k]||0)/maxC*100)}%;background:${v.c}"></div></div>
+      <span class="bar-cnt">${counts[k]||0}</span>
+    </div>`).join('');
+  const trendHtml = days.map(x => {
+    const n = x.d.getDate();
+    const label = (x.d.getMonth()+1)+'/'+n;
+    const name = m[x.k] ? m[x.k].name : null;
+    const c = name ? MOODS[name].c : '#eef5f1';
+    const h = name ? 40 : 8;
+    return `<div class="col-bar" title="${x.k}${name?' · '+name:''}"><div class="tb" style="height:${h}px;background:${c}"></div><span class="tl">${label}</span></div>`;
+  }).join('');
+  box.innerHTML = barHtml + `<div class="trend" style="margin-top:14px">${trendHtml}</div>`;
+}
+
+/* ================= 呼吸 ================= */
+let breathT = null, breathOn = false;
+function toggleBreath(){
+  const btn = document.getElementById('btnBreath');
+  if (breathOn){ clearInterval(breathT); breathOn = false; btn.textContent = '开始';
+    document.getElementById('ring').style.transform = 'scale(1)';
+    document.getElementById('ringTxt').textContent = '准备';
+    document.getElementById('phaseTxt').textContent = '吸气 4 秒 · 屏息 7 秒 · 呼气 8 秒'; return; }
+  breathOn = true; btn.textContent = '停止';
+  const steps = [['吸气',4,'scale(1.32)'],['屏住',7,'scale(1.32)'],['呼气',8,'scale(1)']];
+  let si = 0, left = steps[0][1];
+  const ring = document.getElementById('ring'), rt = document.getElementById('ringTxt'), pt = document.getElementById('phaseTxt');
+  const tick = () => {
+    if (left <= 0){
+      si = (si + 1) % steps.length; left = steps[si][1];
+      ring.style.transitionDuration = (steps[si][1] / 2) + 's';
+      ring.style.transform = steps[si][2];
+    }
+    rt.textContent = left; pt.textContent = steps[si][0] + ' · ' + left + ' 秒';
+    left--;
+  };
+  ring.style.transform = steps[0][2]; tick();
+  breathT = setInterval(tick, 1000);
+}
+
+/* ================= 工具 ================= */
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2200); }
+document.getElementById('input').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
+
+/* ================= 初始化 ================= */
+function initDaily(){
+  const d = new Date();
+  const dayOfYear = Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+  const q = DAILY_QUOTES[dayOfYear % DAILY_QUOTES.length];
+  document.getElementById('dailyQuote').textContent = '“' + q.q + '”';
+  document.getElementById('dailyNote').textContent = q.n;
+}
+document.querySelectorAll('.mood-btn').forEach(b => b.onclick = () => setMood(b.dataset.mood));
+
+initDaily();
+renderMood();
+renderWeather();
+renderArchive();
+</script>
+</body>
+</html>
