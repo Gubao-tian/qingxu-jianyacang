@@ -11,6 +11,18 @@
     --brand:#35b39a; --brand2:#7ed3bf; --mint:#3fbfb0; --sun:#f2b95c;
     --radius:16px;
     --font:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',system-ui,sans-serif;
+    --bg:#f4faf6;
+    --pheadbg:linear-gradient(180deg,#fdfefd,#f0f8f4);
+    --panel-shadow:0 10px 30px rgba(60,120,90,.06);
+  }
+  /* 夜间模式 */
+  body.dark{
+    --ink:#e2ece7; --ink2:#b5c6be; --dim:#7d938a;
+    --card:#1e2a26; --line:#31453d;
+    --brand:#4ac9ad; --brand2:#7ed3bf; --mint:#4ac9ad; --sun:#f2b95c;
+    --bg:#121a17;
+    --pheadbg:linear-gradient(180deg,#22302b,#1a2621);
+    --panel-shadow:0 10px 30px rgba(0,0,0,.35);
   }
   *{margin:0;padding:0;box-sizing:border-box}
   body{
@@ -19,8 +31,24 @@
       radial-gradient(900px 500px at 12% -5%, rgba(53,179,154,.14), transparent 60%),
       radial-gradient(800px 460px at 92% 8%, rgba(126,211,191,.14), transparent 60%),
       radial-gradient(700px 500px at 60% 100%, rgba(242,185,92,.10), transparent 60%),
-      #f4faf6;
+      var(--bg);
+    transition:background .4s, color .4s;
   }
+  body.dark{
+    background:
+      radial-gradient(900px 500px at 12% -5%, rgba(74,201,173,.10), transparent 60%),
+      radial-gradient(800px 460px at 92% 8%, rgba(126,211,191,.08), transparent 60%),
+      radial-gradient(700px 500px at 60% 100%, rgba(242,185,92,.05), transparent 60%),
+      var(--bg);
+  }
+
+  /* 顶部工具栏 */
+  .toolbar{max-width:1180px;margin:0 auto;padding:10px 24px 0;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .toolbar button{
+    font-family:var(--font);font-size:12px;padding:6px 14px;border-radius:99px;cursor:pointer;
+    border:1px solid var(--line);background:var(--card);color:var(--ink2);transition:all .18s;
+  }
+  .toolbar button:hover{border-color:#8fd4c4;color:#2f8f7a}
   header{max-width:1180px;margin:0 auto;padding:26px 24px 10px;text-align:center}
   .logo{font-size:40px}
   header h1{font-size:26px;letter-spacing:2px;margin-top:6px}
@@ -33,11 +61,20 @@
   main{max-width:1180px;margin:0 auto;padding:18px 24px 40px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start}
   @media(max-width:920px){.grid{grid-template-columns:1fr}}
+  @media(max-width:480px){
+    header h1{font-size:22px}
+    .sub{font-size:12px}
+    .toolbar{justify-content:center;padding:8px 16px 0}
+    .toolbar button{font-size:11px;padding:5px 11px}
+    #cardCanvas{width:100%}
+    .btnrow button{flex:1;min-width:0;padding:10px 8px;font-size:13px}
+    textarea{min-height:140px}
+  }
 
   .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    box-shadow:0 10px 30px rgba(60,120,90,.06);overflow:hidden}
+    box-shadow:var(--panel-shadow);overflow:hidden}
   .phead{padding:13px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px;
-    font-size:14px;background:linear-gradient(180deg,#fdfefd,#f0f8f4)}
+    font-size:14px;background:var(--pheadbg)}
   .phead .em{font-size:16px}
   .phead .note{margin-left:auto;font-size:11px;color:var(--dim)}
   .pbody{padding:18px}
@@ -172,6 +209,27 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .fade{animation:fade .5s ease}
   @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ===== 夜间模式补充 ===== */
+  body.dark textarea{background:#1a2621;color:var(--ink);border-color:var(--line)}
+  body.dark textarea::placeholder{color:#5c6f66}
+  body.dark .cat{background:#1e2a26;color:var(--ink2)}
+  body.dark button{background:#1e2a26;color:var(--ink2)}
+  body.dark .mood-btn{background:#1e2a26}
+  body.dark .arch{background:#1e2a26}
+  body.dark .daily{background:linear-gradient(135deg,rgba(74,201,173,.12),rgba(242,185,92,.10));border-color:rgba(74,201,173,.3)}
+  body.dark .daily .dquote{color:var(--ink)}
+  body.dark .block.b-hug{background:linear-gradient(135deg,rgba(74,201,173,.10),rgba(242,185,92,.08))}
+  body.dark .b-hug p{color:var(--ink)}
+  body.dark .col{background:#1a2621}
+  body.dark .col li{color:var(--ink2)}
+  body.dark .bar-track{background:#24312c}
+  body.dark .act .t{color:var(--ink)}
+  body.dark .act .d{color:var(--ink2)}
+  body.dark .block{background:#1a2621}
+  body.dark .out-empty{color:var(--dim)}
+  body.dark .tip{color:var(--dim)}
+  body.dark .arch .x{color:#4a5a53}
 </style>
 </head>
 <body>
@@ -182,6 +240,14 @@
   <div class="sub">把烦心事放进减压舱，它会接住你、陪你理清，再给你一份马上能做的解忧方案<br>卸下一点重量，再往前一步</div>
   <span class="pill">🔒 所有内容只在你的设备上运行，不上传任何服务器</span>
 </header>
+
+<div class="toolbar">
+  <button id="btnTheme" onclick="toggleDark()">🌙 夜间模式</button>
+  <button onclick="exportData()">📤 导出数据</button>
+  <button onclick="document.getElementById('importFile').click()">📥 导入数据</button>
+  <button onclick="clearAll()">🗑️ 清空数据</button>
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(this)">
+</div>
 
 <main>
   <div class="grid">
@@ -211,6 +277,7 @@
             <button class="cat" data-c="self"><span class="ic">🌀</span>自我内耗</button>
             <button class="cat" data-c="health"><span class="ic">🫀</span>健康焦虑</button>
             <button class="cat" data-c="money"><span class="ic">💰</span>经济压力</button>
+            <button class="cat" data-c="pet"><span class="ic">🐾</span>宠物/离别</button>
           </div>
           <textarea id="input" placeholder="这里只有减压舱在听。&#10;想到什么写什么，不用组织语言，哪怕是碎碎念也可以……"></textarea>
           <div class="meta">
@@ -219,7 +286,7 @@
           </div>
           <div class="btnrow">
             <button class="primary" id="btnGen" onclick="generate()">🌿 生成解忧方案</button>
-            <button class="mic" id="btnMic" onclick="toggleMic()">🎤 语音输入</button>
+            <button class="mic" id="btnMic" onclick="toggleMic()" aria-label="语音输入，说话转文字">🎤 语音输入</button>
             <button onclick="document.getElementById('input').value='';updateMeta()">清空</button>
             <button class="small" onclick="randomPrompt()">🎲 没头绪？给我个开头</button>
           </div>
@@ -282,7 +349,7 @@
         <div class="phead"><span class="em">🎴</span><span>解忧卡片</span><span class="note">step 3 · 保存后发朋友圈/小红书</span></div>
         <div class="pbody">
           <div class="cardwrap" id="cardWrap" style="display:none">
-            <canvas id="cardCanvas"></canvas>
+            <canvas id="cardCanvas" role="img" aria-label="解忧方案卡片预览"></canvas>
             <div class="tip">竖版 3:4，适合小红书 / 朋友圈 · 长按图片可保存</div>
           </div>
           <div class="out-empty" id="cardEmpty" style="padding:34px 10px"><span class="big">🎴</span>生成方案后，一键做成好看的卡片</div>
@@ -319,6 +386,8 @@ const EMOTIONS = [
   { key:'inner',name:'内耗', color:'#9d7ce8', words:['内耗','反复想','想太多','自我怀疑','否定','我是不是','不够好','配不上','后悔','自责','纠结自己'] },
   { key:'low',  name:'低落', color:'#7f9ae8', words:['低落','没意思','好丧','丧气','无聊','提不起','无趣','心累','麻木','空落落'] },
   { key:'sick', name:'担忧', color:'#e8a14b', words:['生病','身体','不舒服','症状','体检','疼痛','癌','得病','生病','复发','健康','确诊'] },
+  { key:'guilt', name:'内疚', color:'#b58ce8', words:['内疚','愧疚','对不起','亏欠','过意不去','都是我不好','自责','没脸','惭愧','拖累','连累'] },
+  { key:'grief', name:'思念', color:'#7f9ae8', words:['想念','思念','怀念','失去','走了','去世','离开我','再也见不到','舍不得','告别','舍不得的'] },
 ];
 
 /* ================= 分类知识库 ================= */
@@ -395,6 +464,14 @@ const CATS = {
     acts:[{t:'启动一个 5 分钟任务',d:'定个闹钟，做那件压着你的事 5 分钟，到点可以停。多数时候你会发现：最难的不是做，是开始。',m:'5 分钟'},
           {t:'给情绪画个像',d:'闭上眼，如果此刻的情绪是一个形状、颜色、天气，它是什么？画出来或写下来。被看见的情绪，威力就减半。',m:'5 分钟'},
           {t:'布置一个「明日锚点」',d:'决定明天醒来后的第一个动作（喝水、拉开窗帘、写三行日记）。低谷期的人最需要的，是一个确定的起点。',m:'2 分钟'}] },
+  pet:  { name:'宠物/离别', emo:'🐾',
+    prompts:['我的毛孩子……','一想到要告别就……','我失去了……'],
+    hug:['你付出的每一份爱，它都真真切切地接收到了——离别带不走这份感情。','失去陪伴的痛，不会因为它是小动物就轻一点，这份难过是真实且正当的。','能被你惦记着，是它这一生里很幸运的事。'],
+    chg:['把思念具象化：写一封给它的信、整理它的照片','给悲伤设一个「仪式」，让情绪有安放之处','允许自己在某个时刻好好地哭一场，不压抑','把「它不在了」慢慢过渡成「它来过，并且被深爱过」','照顾好自己，就当是替它继续好好生活'],
+    ctl:['生命有它自己的长短','疾病和意外什么时候来','已经错过的那些瞬间','别人是否理解你的难过'],
+    acts:[{t:'写一封给它的信',d:'把想对它说的话写下来，想哭就哭。把没说出口的话安放好，思念就从一个「伤口」变成一份「礼物」。',m:'10 分钟'},
+          {t:'整理一张它的照片',d:'挑一张最喜欢的照片，放在一个能常常看到的地方。让它从「失去」变回「陪伴过」的证据。',m:'5 分钟'},
+          {t:'替它照顾自己一次',d:'按时吃一顿饭、早点睡。它生前最放心不下的，大概就是那个总是照顾它、却忘了照顾自己的你。',m:'10 分钟'}] },
 };
 
 const CLOSINGS = [
@@ -405,6 +482,8 @@ const CLOSINGS = [
   '你比你想象中更有韧性，慢慢来。<span class="heart">❤</span>',
   '卸下一点重量，再往前一步就很了不起。<span class="heart">❤</span>',
   '今天没能解决的问题，不代表明天也解决不了。<span class="heart">❤</span>',
+  '你已经很努力了，剩下的交给时间和你。<span class="heart">❤</span>',
+  '记得，这世上总有人在偷偷心疼你。<span class="heart">❤</span>',
 ];
 
 /* 每日一句 */
@@ -421,6 +500,13 @@ const DAILY_QUOTES = [
   { q:'今天的小事，是明天的大底气。', n:'—— 从最小的一步开始' },
   { q:'难的时候，记得你还有自己这个盟友。', n:'—— 永远站在自己这边' },
   { q:'成长不是不累，是累的时候知道怎么照顾自己。', n:'—— 这就是进步' },
+  { q:'你值得被温柔地对待，尤其被你自己。', n:'—— 别忘了自爱' },
+  { q:'别急着赶路，先照顾好赶路的这个人。', n:'—— 那就是你' },
+  { q:'坏情绪是来访的客人，别把它当主人。', n:'—— 它会走的' },
+  { q:'你已经跨过很多以为跨不过去的坎了。', n:'—— 这次也一样' },
+  { q:'今天不用满分，及格就好。', n:'—— 对自己宽容点' },
+  { q:'允许自己有低谷，那说明你曾经站在高处。', n:'—— 起起伏伏才是人生' },
+  { q:'好好吃饭、好好睡觉，就是在好好爱自己。', n:'—— 从最朴素的开始' },
 ];
 
 /* ================= 状态 ================= */
@@ -507,6 +593,10 @@ function detectCat(text){
       ['钱','账单','工资','开销','存钱','花钱','没钱','穷','房贷','车贷','还款','负债','欠钱','信用卡','花呗','房租','省吃俭用','入不敷出'],
       ['消费','支出','收入','经济']
     ]],
+    ['pet', [
+      ['宠物','猫','狗','狗狗','猫咪','喵','汪','毛孩子','主子','爱宠','养了','领养','遛'],
+      ['失去','去世','走了','告别','想念','舍不得']
+    ]],
   ];
   let best='other', bn=0;
   for (const [k, tiers] of map){
@@ -569,6 +659,11 @@ const HUG_HOOKS = {
     ['钱|账单|开销|花', '为钱发愁的时候，快乐都会打折。'],
     ['欠|负债|还', '背着债的日子，每一步都走得很重。'],
     ['存|攒|工资', '想为未来攒点底气，却总觉得力不从心。'],
+  ],
+  pet: [
+    ['失去|去世|走了|离开', '失去陪伴的痛，不会因为它是小动物就轻一点，这份难过是真实且正当的。'],
+    ['猫|狗|狗狗|猫咪|毛孩子|宠物', '能被你惦记着，是它这一生里很幸运的事。'],
+    ['想念|思念|怀念', '它来过，并且被深爱过，这一点永远不会变。'],
   ],
 };
 
@@ -672,7 +767,8 @@ function render(p){
 }
 
 /* ================= 卡片绘制 ================= */
-function wrapLines(g, text, maxW){
+function wrapLines(g, text, maxW, font){
+  if (font) g.font = font;
   const out = []; let line = '';
   for (const ch of text){
     const test = line + ch;
@@ -844,7 +940,7 @@ function downloadCard(){
   cv.toBlob(b => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(b);
-    a.download = '情绪减压舱_' + Date.now() + '.png';
+    a.download = '情绪减压舱_' + dateStamp() + '.png';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 3000);
     toast('卡片已保存 🎴 去发朋友圈吧');
@@ -862,26 +958,14 @@ function downloadLong(){
   const cv = document.createElement('canvas');
   const g = cv.getContext('2d');
 
-  function wl(text, maxW, size, weight){
-    g.font = (weight||'400') + ' ' + size + 'px ' + F;
-    const out = []; let line = '';
-    for (const ch of text){
-      const test = line + ch;
-      if (g.measureText(test).width > maxW && line){ out.push(line); line = ch; }
-      else line = test;
-    }
-    if (line) out.push(line);
-    return out;
-  }
-
   // 预计算高度
   g.font = '600 34px ' + F;
   const title = '🌿 情绪减压舱 · 解忧方案';
   const sub = p.time + ' · 情绪：' + p.emo.name + ' · ' + p.cat.emo + p.cat.name;
-  const hugL = wl(p.hug, W - PAD*2, 26);
-  const chgL = p.chg.map(s => wl('· ' + s, W - PAD*2 - 20, 24));
-  const ctlL = p.ctl.map(s => wl('· ' + s, W - PAD*2 - 20, 24));
-  const actL = p.acts.map(a => wl(a.d, W - PAD*2 - 40, 24));
+  const hugL = wrapLines(g, p.hug, W - PAD*2, '400 26px ' + F);
+  const chgL = p.chg.map(s => wrapLines(g, '· ' + s, W - PAD*2 - 20, '400 24px ' + F));
+  const ctlL = p.ctl.map(s => wrapLines(g, '· ' + s, W - PAD*2 - 20, '400 24px ' + F));
+  const actL = p.acts.map(a => wrapLines(g, a.d, W - PAD*2 - 40, '400 24px ' + F));
   const closingText = p.closing.replace(/<[^>]+>/g,'');
 
   let H = 0;
@@ -958,7 +1042,7 @@ function downloadLong(){
   cv.toBlob(b => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(b);
-    a.download = '情绪减压舱长图_' + Date.now() + '.png';
+    a.download = '情绪减压舱长图_' + dateStamp() + '.png';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 3000);
     toast('长图已保存 📜 分享给朋友吧');
@@ -1149,6 +1233,10 @@ function toggleBreath(){
 function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('show');
   clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove('show'), 2200); }
+function dateStamp(){
+  const d = new Date();
+  return d.getFullYear() + String(d.getMonth()+1).padStart(2,'0') + String(d.getDate()).padStart(2,'0');
+}
 document.getElementById('input').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') generate(); });
 
 /* ================= 初始化 ================= */
@@ -1161,6 +1249,78 @@ function initDaily(){
 }
 document.querySelectorAll('.mood-btn').forEach(b => b.onclick = () => setMood(b.dataset.mood));
 
+/* ================= 夜间模式 ================= */
+const THEME_KEY = 'decompression_dark';
+function initDark(){
+  let dark = false;
+  try { dark = localStorage.getItem(THEME_KEY) === '1'; } catch(e){}
+  if (dark) document.body.classList.add('dark');
+  syncThemeBtn();
+}
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const dark = document.body.classList.contains('dark');
+  try { localStorage.setItem(THEME_KEY, dark ? '1' : '0'); } catch(e){}
+  syncThemeBtn();
+  if (lastPlan) drawCard(lastPlan);
+}
+function syncThemeBtn(){
+  const b = document.getElementById('btnTheme');
+  const dark = document.body.classList.contains('dark');
+  b.textContent = dark ? '☀️ 日间模式' : '🌙 夜间模式';
+}
+
+/* ================= 数据导出 / 导入 ================= */
+function exportData(){
+  const data = {
+    app: '情绪减压舱',
+    version: '1.1.0',
+    exportedAt: new Date().toISOString(),
+    archive: (()=>{ try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch(e){ return []; } })(),
+    moods: (()=>{ try { return JSON.parse(localStorage.getItem(MOOD_KEY) || '{}'); } catch(e){ return {}; } })(),
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '情绪减压舱数据_' + dateStamp() + '.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+  toast('数据已导出 📤');
+}
+function importData(input){
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.app !== '情绪减压舱' && !data.archive && !data.moods){
+        toast('这不是有效的减压舱数据文件'); return;
+      }
+      if (Array.isArray(data.archive)) localStorage.setItem(KEY, JSON.stringify(data.archive));
+      if (data.moods && typeof data.moods === 'object') localStorage.setItem(MOOD_KEY, JSON.stringify(data.moods));
+      renderArchive(); renderMood(); renderWeather();
+      toast('数据导入成功 📥');
+    } catch(e){
+      toast('导入失败：文件格式错误');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+/* ================= 清空所有数据 ================= */
+function clearAll(){
+  if (!confirm('确定要清空所有数据吗？\n（包括存档和心情打卡记录，此操作不可恢复）')) return;
+  try {
+    localStorage.removeItem(KEY);
+    localStorage.removeItem(MOOD_KEY);
+    renderArchive(); renderMood(); renderWeather();
+    toast('所有数据已清空 🗑️');
+  } catch(e){ toast('清空失败'); }
+}
+
+initDark();
 initDaily();
 renderMood();
 renderWeather();
